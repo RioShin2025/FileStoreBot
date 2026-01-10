@@ -17,7 +17,7 @@ import logging
 import aiohttp
 from aiohttp import web
 from plugins import web_server
-import pyromod.listen
+from pyromod import listen  # ✅ must be before Client import
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
 from pyrogram.types import (

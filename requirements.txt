@@ -1,5 +1,7 @@
 requests==2.31.0
 pyrofork==2.3.45
+pyrofork==2.3.45
+tgcrypto
 TgCrypto
 pyromod
 pymongo

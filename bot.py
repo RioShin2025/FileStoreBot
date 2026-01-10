@@ -33,7 +33,7 @@ pyrogram.utils.MIN_CHANNEL_ID = -1009999999999
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
-
+RESTART_BANNER = "https://i.rj1.dev/nVeqm.jpg"
 
 def get_all_plugins(path="plugins"):
     """

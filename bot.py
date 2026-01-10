@@ -33,6 +33,8 @@ pyrogram.utils.MIN_CHANNEL_ID = -1009999999999
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
+
+
 def get_all_plugins(path="plugins"):
     """
     Recursively find all .py files in the plugins folder (excluding __init__.py and this loader)
@@ -42,9 +44,7 @@ def get_all_plugins(path="plugins"):
     for root, dirs, files in os.walk(path):
         for file in files:
             if file.endswith(".py") and not file.startswith("__"):
-                # get relative path from plugins folder
                 rel_path = os.path.relpath(os.path.join(root, file), path)
-                # convert path to module notation for Pyrogram
                 module_path = rel_path.replace(os.sep, ".")[:-3]  # remove .py
                 plugins_dict[module_path] = {}
     return plugins_dict
@@ -78,6 +78,9 @@ class Bot(Client):
         self.username = usr_bot_me.username  # store username
         bot_mention = f"@{usr_bot_me.username}"  # ✅ Use username mention for logs
 
+        # ✅ Set default parse mode to HTML (we use blockquote + links)
+        self.set_parse_mode(ParseMode.HTML)
+
         # Force Sub Check
         if FORCE_SUB_CHANNEL:
             try:
@@ -89,7 +92,8 @@ class Bot(Client):
             except Exception as a:
                 await self.send_message(
                     LOG_CHANNEL,
-                    f"❌ Failed to get invite link for FORCE_SUB_CHANNEL\n\nError: `{a}`"
+                    f"❌ Failed to get invite link for FORCE_SUB_CHANNEL\n\nError: <code>{a}</code>",
+                    disable_web_page_preview=True
                 )
                 sys.exit()
 
@@ -100,34 +104,45 @@ class Bot(Client):
         except Exception as e:
             await self.send_message(
                 LOG_CHANNEL,
-                f"❌ Failed to connect DB channel.\nError: `{e}`\n\nCheck CHANNEL_ID: `{CHANNEL_ID}`"
+                f"❌ Failed to connect DB channel.<br>Error: <code>{e}</code><br><br>Check CHANNEL_ID: <code>{CHANNEL_ID}</code>",
+                disable_web_page_preview=True
             )
             sys.exit()
 
-        # Bot Restart Log
+        # ✅ Bot Restart Log (Premium + Image + No Inline Buttons)
         now = datetime.now(IST)
         date = now.strftime("%d/%m/%y")
         time = now.strftime("%I:%M:%S %p")
-        restart_text = f"""<blockquote>============================
-BOT RESTARTED
-============================
-Bot:{self.username}
-Date:{date}
-Time:{time}
-Timezone:Asia/Kolkata
-Version:v3.0.8-x
-Host:Render
-Reason:Manual restart
-----------------------------
-"Restarting is not failure,it is maintenance."
-----------------------------
-Developer:<a href="https://t.me/RioShin">RioShin</a>
-GitHub:<a href="https://github.com/RioShin2025/FilestoreBot">Repo</a>
-Logs:<a href="https://t.me/+t_wcYC3jAb40ZTJl">LogChannel</a>
-============================</blockquote>"""
-        await self.send_message(LOG_CHANNEL, restart_text)
 
-        self.set_parse_mode(ParseMode.HTML)
+        restart_text = f"""<blockquote>
+🔥 <b>SYSTEMS ONLINE. READY TO RUMBLE.</b> 🔥<br><br>
+Bot: <b>@{self.username}</b><br>
+{date} · {time} IST<br>
+v3.0.8-x · Render<br>
+Reason: Manual restart<br>
+Uptime: Reset<br><br>
+<i>Sleep mode deactivated.<br>
+Neural cores at 100%.<br>
+Feed me tasks, and watch magic happen.</i><br><br>
+— <a href="https://t.me/RioShin">RioShin</a> ·
+<a href="https://github.com/RioShin2025/FilestoreBot">Repo</a> ·
+<a href="https://t.me/+t_wcYC3jAb40ZTJl">Logs</a>
+</blockquote>"""
+
+        try:
+            await self.send_photo(
+                chat_id=LOG_CHANNEL,
+                photo=RESTART_BANNER,
+                caption=restart_text,
+                parse_mode=ParseMode.HTML
+            )
+        except Exception as e:
+            # fallback text-only if banner fails
+            await self.send_message(
+                LOG_CHANNEL,
+                restart_text + f"<br><br><i>(Banner failed: <code>{e}</code>)</i>",
+                disable_web_page_preview=True
+            )
 
         # Web response
         app = web.AppRunner(await web_server())
@@ -141,33 +156,33 @@ Logs:<a href="https://t.me/+t_wcYC3jAb40ZTJl">LogChannel</a>
 
     async def stop(self, *args):
         try:
-            await self.send_message(LOG_CHANNEL, "❌ Bot Stopped!")
+            await self.send_message(LOG_CHANNEL, "❌ Bot Stopped!", disable_web_page_preview=True)
         except Exception:
             pass
-
         await super().stop()
 
-# 🔹 Log New Users
+# 🔹 Log New Users (HTML only, because bot default parse_mode is HTML)
 @Bot.on_message(filters.command("start") & filters.private)
 async def log_new_user(client: Bot, message: Message):
     user = message.from_user
-    
-    # Get current time in IST for the log
+
     now = datetime.now(IST)
     date = now.strftime("%d/%m/%y")
-    time = now.strftime("%I:%M.%S %p") # ✅ Format: 01:37.08 PM
+    time = now.strftime("%I:%M:%S %p")  # ✅ fixed (was %I:%M.%S)
 
     log_text = (
-        f"**⌬ 🆕👤 #NewUser** \n"
-        f"**┟ Bot:** __@{client.username}__\n"
-        f"**┟ User:** __{user.mention}__\n"
-        f"**┟ User ID:** <code>{user.id}</code>\n"
-        f"**┟ Date:** __{date}__\n"
-        f"**┖ Time:** __{time}__"
+        f"<blockquote>"
+        f"<b>⌬ 🆕👤 #NewUser</b><br>"
+        f"<b>Bot:</b> <b>@{client.username}</b><br>"
+        f"<b>User:</b> {user.mention}<br>"
+        f"<b>User ID:</b> <code>{user.id}</code><br>"
+        f"<b>Date:</b> {date}<br>"
+        f"<b>Time:</b> {time}"
+        f"</blockquote>"
     )
-    await client.send_message(LOG_CHANNEL, log_text)
+
+    await client.send_message(LOG_CHANNEL, log_text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
     await message.reply_text("👋 Hello! You started the bot ✅")
-    
 
 # MyselfNeon
 # Don't Remove Credit 🥺

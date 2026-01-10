@@ -20,7 +20,12 @@ from plugins import web_server
 import pyromod.listen
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
-from pyrogram.types import Message, BotCommand
+from pyrogram.types import (
+    Message,
+    BotCommand,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton
+)
 from datetime import datetime, timedelta, timezone
 from config import (
     API_HASH, API_ID, BOT_TOKEN, TG_BOT_WORKERS,
@@ -33,7 +38,13 @@ pyrogram.utils.MIN_CHANNEL_ID = -1009999999999
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
+# ✅ Add your image link here (must be direct .jpg/.png/.webp) OR telegram file_id
 RESTART_BANNER = "https://i.rj1.dev/nVeqm.jpg"
+
+# ✅ Button Links (edit these)
+START_NOW_DEEPLINK_PARAM = "start"  # will open t.me/<bot>?start=start
+CHANNEL_URL = "https://t.me/Botskingdoms"  # replace
+
 
 def get_all_plugins(path="plugins"):
     """
@@ -49,6 +60,7 @@ def get_all_plugins(path="plugins"):
                 plugins_dict[module_path] = {}
     return plugins_dict
 
+
 async def keep_alive():
     """Send a request every 100 seconds to keep the bot alive (if required)."""
     async with aiohttp.ClientSession() as session:
@@ -59,6 +71,7 @@ async def keep_alive():
             except Exception as e:
                 logging.error(f"Keep-alive request failed: {e}")
             await asyncio.sleep(100)
+
 
 class Bot(Client):
     def __init__(self):
@@ -73,13 +86,13 @@ class Bot(Client):
 
     async def start(self):
         await super().start()
+
+        # ✅ default parse mode to HTML (blockquote + bold + links)
+        self.set_parse_mode(ParseMode.HTML)
+
         usr_bot_me = await self.get_me()
         self.uptime = datetime.now()
         self.username = usr_bot_me.username  # store username
-        bot_mention = f"@{usr_bot_me.username}"  # ✅ Use username mention for logs
-
-        # ✅ Set default parse mode to HTML (we use blockquote + links)
-        self.set_parse_mode(ParseMode.HTML)
 
         # Force Sub Check
         if FORCE_SUB_CHANNEL:
@@ -92,7 +105,7 @@ class Bot(Client):
             except Exception as a:
                 await self.send_message(
                     LOG_CHANNEL,
-                    f"❌ Failed to get invite link for FORCE_SUB_CHANNEL\n\nError: <code>{a}</code>",
+                    f"❌ Failed to get invite link for FORCE_SUB_CHANNEL<br><br>Error: <code>{a}</code>",
                     disable_web_page_preview=True
                 )
                 sys.exit()
@@ -109,39 +122,46 @@ class Bot(Client):
             )
             sys.exit()
 
-        # ✅ Bot Restart Log (Premium + Image + No Inline Buttons)
-        now = datetime.now(IST)
-        date = now.strftime("%d/%m/%y")
-        time = now.strftime("%I:%M:%S %p")
-
-        restart_text = f"""<blockquote>
-🔥 <b>SYSTEMS ONLINE. READY TO RUMBLE.</b> 🔥<br><br>
-Bot: <b>@{self.username}</b><br>
-{date} · {time} IST<br>
-v3.0.8-x · Render<br>
-Reason: Manual restart<br>
-Uptime: Reset<br><br>
-<i>Sleep mode deactivated.<br>
-Neural cores at 100%.<br>
-Feed me tasks, and watch magic happen.</i><br><br>
-— <a href="https://t.me/RioShin">RioShin</a> ·
-<a href="https://github.com/RioShin2025/FilestoreBot">Repo</a> ·
-<a href="https://t.me/+t_wcYC3jAb40ZTJl">Logs</a>
+        # ✅ Bot Restart Log (EXACT SAME STYLE: image + blockquote + inline buttons)
+        restart_caption = (
+            f"""<blockquote>
+🔥 <b>ѕ ѕуѕтємѕ σηℓιηє. яєα∂у<br>тσ яυмвℓє.</b> 🔥<br><br>
+<b>∂¢ мσ∂є:</b> 5<br><br>
+ѕℓєєρ мσ∂є ∂єα¢тιναтє∂. ηєυяαℓ ¢σяєѕ αт 100%. ƒєє∂ мє тαѕкѕ, αη∂ ωαт¢н мαgι¢ нαρρєη. ℓєт’s. gєт. ∂αηgєяσυѕ.
 </blockquote>"""
+        )
+
+        restart_buttons = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        "Start Now",
+                        url=f"https://t.me/{self.username}?start={START_NOW_DEEPLINK_PARAM}"
+                    ),
+                    InlineKeyboardButton(
+                        "Channel",
+                        url=CHANNEL_URL
+                    ),
+                ]
+            ]
+        )
 
         try:
             await self.send_photo(
                 chat_id=LOG_CHANNEL,
                 photo=RESTART_BANNER,
-                caption=restart_text,
-                parse_mode=ParseMode.HTML
+                caption=restart_caption,
+                parse_mode=ParseMode.HTML,
+                reply_markup=restart_buttons
             )
         except Exception as e:
-            # fallback text-only if banner fails
+            # fallback text-only if photo link/file_id fails
             await self.send_message(
                 LOG_CHANNEL,
-                restart_text + f"<br><br><i>(Banner failed: <code>{e}</code>)</i>",
-                disable_web_page_preview=True
+                restart_caption + f"<br><br><i>(Banner failed: <code>{e}</code>)</i>",
+                parse_mode=ParseMode.HTML,
+                disable_web_page_preview=True,
+                reply_markup=restart_buttons
             )
 
         # Web response
@@ -156,19 +176,20 @@ Feed me tasks, and watch magic happen.</i><br><br>
 
     async def stop(self, *args):
         try:
-            await self.send_message(LOG_CHANNEL, "❌ Bot Stopped!", disable_web_page_preview=True)
+            await self.send_message(LOG_CHANNEL, "вσт нαѕ ѕтαятє∂", disable_web_page_preview=True)
         except Exception:
             pass
         await super().stop()
 
-# 🔹 Log New Users (HTML only, because bot default parse_mode is HTML)
+
+# 🔹 Log New Users (HTML-safe because bot parse_mode is HTML)
 @Bot.on_message(filters.command("start") & filters.private)
 async def log_new_user(client: Bot, message: Message):
     user = message.from_user
 
     now = datetime.now(IST)
     date = now.strftime("%d/%m/%y")
-    time = now.strftime("%I:%M:%S %p")  # ✅ fixed (was %I:%M.%S)
+    time = now.strftime("%I:%M:%S %p")  # ✅ fixed format
 
     log_text = (
         f"<blockquote>"
@@ -183,6 +204,7 @@ async def log_new_user(client: Bot, message: Message):
 
     await client.send_message(LOG_CHANNEL, log_text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
     await message.reply_text("👋 Hello! You started the bot ✅")
+
 
 # MyselfNeon
 # Don't Remove Credit 🥺

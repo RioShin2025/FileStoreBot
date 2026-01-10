@@ -84,6 +84,10 @@ class Bot(Client):
             bot_token=BOT_TOKEN
         )
 
+    from pyromod.listen import ListenerTypes
+        self.listeners.setdefault(ListenerTypes.MESSAGE, [])
+        self.listeners.setdefault(ListenerTypes.CALLBACK_QUERY, [])
+
     async def start(self):
         await super().start()
 

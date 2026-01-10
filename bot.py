@@ -108,23 +108,25 @@ class Bot(Client):
         now = datetime.now(IST)
         date = now.strftime("%d/%m/%y")
         time = now.strftime("%I:%M:%S %p")
-        restart_text = (
-    <blockquote>f"============================\n"
-    f"        BOT RESTARTED\n"
-    f"============================\n"
-    f"Bot        : @{self.username}\n"
-    f"Date       : {date}\n"
-    f"Time       : {time}\n"
-    f"Timezone   : Asia/Kolkata\n"
-    f"Version    : v3.0.8-x\n"
-    f"Host       : Render\n"
-    f"Reason     : Manual restart\n"
-    f"----------------------------\n"
-    f"Developer  : [RioShin](https://t.me/RioShin)\n"
-    f"GitHub     : [Repo](https://github.com/RioShin2025/FileStoreBot.git)\n"
-    f"Logs       : [Log Channel](https://t.me/+t_wcYC3jAb40ZTJl)\n"
-    f"============================"</blockquote>
-)
+        restart_text = f"""
+============================
+        BOT RESTARTED
+============================
+Bot        : @{self.username}
+Date       : {date}
+Time       : {time}
+Timezone   : Asia/Kolkata
+Version    : v3.0.8-x
+Host       : Heroku
+Reason     : Manual restart
+----------------------------
+"Restarting is not failure,
+ it is maintenance."
+ Developer  : [RioShin](https://t.me/RioShin)\n"
+ GitHub     : [Repo](https://github.com/RioShin2025)\n"
+ Logs       : [Log Channel](https://t.me/BotsKingdomsLogs)\n"
+    f"=====================
+"""
         await self.send_message(LOG_CHANNEL, restart_text)
 
         self.set_parse_mode(ParseMode.HTML)

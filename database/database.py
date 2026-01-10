@@ -1,0 +1,46 @@
+# ---------------------------------------------------
+# File Name: Database.py
+# Author: NeonAnurag
+# GitHub: https://github.com/MyselfNeon/
+# Telegram: https://t.me/MyelfNeon
+# YouTube: https://youtube.com/@MyselfNeon
+# Created: 2025-10-21
+# Last Modified: 2025-10-22
+# Version: Latest
+# License: MIT License
+# ---------------------------------------------------
+
+import pymongo, os
+from config import DB_URL, DB_NAME
+
+dbclient = pymongo.MongoClient(DB_URL)
+database = dbclient[DB_NAME]
+user_data = database['users']
+
+
+async def present_user(user_id: int):
+    found = user_data.find_one({'_id': user_id})
+    return bool(found)
+
+
+async def add_user(user_id: int):
+    user_data.insert_one({'_id': user_id})
+    return
+
+
+async def full_userbase():
+    user_docs = user_data.find()
+    user_ids = []
+    for doc in user_docs:
+        user_ids.append(doc['_id'])
+    return user_ids
+
+
+async def del_user(user_id: int):
+    user_data.delete_one({'_id': user_id})
+    return
+
+
+# MyselfNeon
+# Don't Remove Credit 🥺
+# Telegram Channel @NeonFiles

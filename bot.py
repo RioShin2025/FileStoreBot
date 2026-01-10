@@ -109,13 +109,22 @@ class Bot(Client):
         date = now.strftime("%d/%m/%y")
         time = now.strftime("%I:%M:%S %p")
         restart_text = (
-            f"**⌬ Restarted Successfully !**\n"
-            f"**┟ Bot:** __@{self.username}__\n"
-            f"**┟ Date:** __{date}__\n"
-            f"**┠ Time:** __{time}__\n"
-            f"**┠ TimeZone:** __Asia/Kolkata__\n"
-            f"**┖ Version:** __v3.0.8-x__"
-        )
+    <blockquote>f"============================\n"
+    f"        BOT RESTARTED\n"
+    f"============================\n"
+    f"Bot        : @{self.username}\n"
+    f"Date       : {date}\n"
+    f"Time       : {time}\n"
+    f"Timezone   : Asia/Kolkata\n"
+    f"Version    : v3.0.8-x\n"
+    f"Host       : Render\n"
+    f"Reason     : Manual restart\n"
+    f"----------------------------\n"
+    f"Developer  : [RioShin](https://t.me/RioShin)\n"
+    f"GitHub     : [Repo](https://github.com/RioShin2025/FileStoreBot.git)\n"
+    f"Logs       : [Log Channel](https://t.me/+t_wcYC3jAb40ZTJl)\n"
+    f"============================"</blockquote>
+)
         await self.send_message(LOG_CHANNEL, restart_text)
 
         self.set_parse_mode(ParseMode.HTML)

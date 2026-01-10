@@ -13,6 +13,7 @@
 import base64
 import re
 import asyncio
+import binascii
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus
 from config import FORCE_SUB_CHANNEL, ADMINS, PROTECT_CONTENT, SUPER_PREMIUM_USERS
@@ -41,12 +42,16 @@ async def encode(string):
     base64_string = (base64_bytes.decode("ascii")).strip("=")
     return base64_string
 
+  
 async def decode(base64_string):
-    base64_string = base64_string.strip("=")  # links generated before this commit will be having = sign, hence striping them to handle padding errors.
-    base64_bytes = (base64_string + "=" * (-len(base64_string) % 4)).encode("ascii")
-    string_bytes = base64.urlsafe_b64decode(base64_bytes)
-    string = string_bytes.decode("ascii")
-    return string
+    try:
+        base64_string = (base64_string or "").strip()
+        base64_string = base64_string.strip("=")
+        base64_bytes = (base64_string + "=" * (-len(base64_string) % 4)).encode("ascii")
+        string_bytes = base64.urlsafe_b64decode(base64_bytes)
+        return string_bytes.decode("ascii")
+    except (binascii.Error, UnicodeDecodeError, ValueError):
+        return None
 
 async def get_messages(client, message_ids):
     messages = []

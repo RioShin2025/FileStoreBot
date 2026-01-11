@@ -4,6 +4,7 @@
 from pyrogram import filters
 from config import OWNER_ID
 from database.database import add_admin, remove_admin, get_all_admins
+from pyrogram.enums import ParseMode
 
 from bot import Bot  # ✅ IMPORTANT: use the running client instance
 
@@ -22,7 +23,7 @@ async def add_admin_handler(client, message):
     add_admin(user_id)
     await message.reply_text(
         f"<code>➥ Aᴅᴅᴇᴅ {user_id} ᴛᴏ ᴍʏ ʟᴏʏᴀʟ ᴀᴅᴍɪɴꜱ ♨️</code>",
-        parse_mode="html"
+        parse_mode=ParseMode.HTML
     )
 
 
@@ -40,7 +41,7 @@ async def remove_admin_handler(client, message):
     remove_admin(user_id)
     await message.reply_text(
         f"<code>➥ {user_id} ɪs ɴᴏ ʟᴏɴɢᴇʀ ᴏɴ ᴛʜᴇ ᴛʜʀᴏɴᴇ 💔</code>",
-        parse_mode="html"
+        parse_mode=ParseMode.HTML
     )
 
 
@@ -58,5 +59,5 @@ async def admins_list_handler(client, message):
 
     await message.reply_text(
         f"<b>⚙️ Aᴄᴛɪᴠᴇ Aᴅᴍɪɴꜱ:</b>\n{admins_text}",
-        parse_mode="html"
+        parse_mode=ParseMode.HTML
     )

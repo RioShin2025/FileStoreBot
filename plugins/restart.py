@@ -26,9 +26,9 @@ async def restart_bot(client, message):
     bye = await message.reply_photo(
         photo="https://i.ibb.co/mHTMbmM/630b4ff5ccf9.jpg",
         caption="<b>💔 Rᴇsᴛᴀʀᴛɪɴɢ... Dᴏɴ'ᴛ ʏᴏᴜ ᴅᴀʀᴇ ᴍɪss ᴍᴇ ʙᴀʙʏ!</b>",
-        parse_mode="html",
+        parse_mode=ParseMode.HTML,
         reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("🛠️ Dᴇᴠ", url="https://t.me/Otakukart7"),
+            [InlineKeyboardButton("🛠️ Dᴇᴠ", url="https://t.me/RioShin"),
              InlineKeyboardButton("❌ Cʟᴏꜱᴇ", callback_data="close")]
         ])
     )

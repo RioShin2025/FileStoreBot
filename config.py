@@ -34,7 +34,7 @@ SHORT_API = "2ad041b1b4f8ce90b3ecadbbedbc904709bc8138"
 SHORTENER_ENABLED = True
 
 # --- Admins --- #
-ADMINS = [6848088376]
+ADMINS = [8476571786]
 try:
     for x in os.environ.get("ADMINS", "841851780").split():
         ADMINS.append(int(x))

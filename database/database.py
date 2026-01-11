@@ -10,7 +10,7 @@
 # License: MIT License
 # ---------------------------------------------------
 
-import pymongo, os
+import pymongo, os, json
 from config import DB_URL, DB_NAME
 
 dbclient = pymongo.MongoClient(DB_URL)
@@ -50,6 +50,35 @@ def remove_admin(user_id: int):
 
 def get_all_admins():
     return list(admins)
+    
+_ADMINS_FILE = "admins.json"
+
+def _load_admins():
+    if not os.path.exists(_ADMINS_FILE):
+        return []
+    with open(_ADMINS_FILE, "r", encoding="utf-8") as f:
+        try:
+            return json.load(f)
+        except Exception:
+            return []
+
+def _save_admins(admins):
+    with open(_ADMINS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sorted(list(set(admins))), f)
+
+def add_admin(user_id: int):
+    admins = _load_admins()
+    if user_id not in admins:
+        admins.append(user_id)
+    _save_admins(admins)
+
+def remove_admin(user_id: int):
+    admins = _load_admins()
+    admins = [x for x in admins if x != user_id]
+    _save_admins(admins)
+
+def get_all_admins():
+    return _load_admins()
 # MyselfNeon
 # Don't Remove Credit 🥺
 # Telegram Channel @NeonFiles

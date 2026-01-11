@@ -71,27 +71,26 @@ async def start_command(client: Client, message: Message):
     # ✅ Safe payload parsing (fix NoneType split crash)
     text = (message.text or "").strip()
 
-    if " " in text:
-        base64_string = text.split(" ", 1)[1].strip()
-    else:
-        base64_string = ""
+# get payload after "/start "
+base64_string = ""
+if " " in text:
+    base64_string = text.split(" ", 1)[1].strip()
 
-    # No payload -> normal start
-    if not base64_string:
-        return await send_start_ui(client, message)
+# no payload => normal start
+if not base64_string:
+    return await send_start_ui(client, message)
 
-    # Decode payload
-    try:
-        string = await decode(base64_string)
-    except:
-        return await send_start_ui(client, message)
+# decode payload
+try:
+    string = await decode(base64_string)
+except Exception:
+    return await send_start_ui(client, message)
 
-    # Decode failed or invalid -> normal start
-    if not string or not isinstance(string, str):
-        return await send_start_ui(client, message)
+# ✅ IMPORTANT GUARD
+if not string or not isinstance(string, str):
+    return await send_start_ui(client, message)
 
-    argument = string.split("-")
-
+argument = string.split("-")
     # =========================
     # rget- handler (your custom)
     # =========================

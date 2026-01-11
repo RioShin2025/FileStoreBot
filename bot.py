@@ -79,14 +79,14 @@ class Bot(Client):
             name="Bot",
             api_hash=API_HASH,
             api_id=API_ID,
-            plugins={"root": "plugins", **get_all_plugins("plugins")},  # ✅ Auto-load all plugins
+            plugins={"root": "plugins", **get_all_plugins("plugins")},
             workers=TG_BOT_WORKERS,
             bot_token=BOT_TOKEN
         )
 
-        from pyromod.listen import ListenerTypes
-        self.listeners.setdefault(ListenerTypes.MESSAGE, [])
-        self.listeners.setdefault(ListenerTypes.CALLBACK_QUERY, [])
+        # ✅ Works in old/new pyromod
+        self.listeners.setdefault("message", [])
+        self.listeners.setdefault("callback_query", [])
 
     async def start(self):
         await super().start()

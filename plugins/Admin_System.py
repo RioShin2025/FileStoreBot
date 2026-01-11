@@ -2,11 +2,11 @@
 
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from config import Config 
+from config import OWNER_ID
 from database.database import add_admin, remove_admin, get_all_admins
 import asyncio
 
-OWNER_ID = Config.OWNER_ID  # Owner check
+
 
 # ➕ Add Admin
 @Client.on_message(filters.command("add_admin") & filters.private)

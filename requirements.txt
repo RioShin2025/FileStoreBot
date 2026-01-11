@@ -1,7 +1,7 @@
 requests==2.31.0
 pyrogram==2.0.106
-pyromod==3.1.6
-tgcrypto==1.2.5
+pyromod==1.5
+tgcrypto
 aiohttp==3.9.5
 pymongo[srv]==4.6.3
 dnspython==2.6.1

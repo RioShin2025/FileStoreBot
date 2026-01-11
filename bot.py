@@ -16,8 +16,13 @@ import asyncio
 import logging
 import aiohttp
 from aiohttp import web
+from datetime import datetime, timedelta, timezone
+
 from plugins import web_server
-from pyromod import listen  # ✅ must be before Client import
+
+# ✅ IMPORTANT: this must be imported BEFORE pyrogram Client import
+from pyromod import listen  # noqa: F401
+
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
 from pyrogram.types import (
@@ -26,15 +31,21 @@ from pyrogram.types import (
     InlineKeyboardMarkup,
     InlineKeyboardButton
 )
-from datetime import datetime, timedelta, timezone
+
 from config import (
     API_HASH, API_ID, BOT_TOKEN, TG_BOT_WORKERS,
     FORCE_SUB_CHANNEL, CHANNEL_ID, PORT, LOG_CHANNEL, KEEP_ALIVE_URL
 )
+
 import pyrogram.utils
-import pyrogram  # ✅ For version info
+import pyrogram
 
 pyrogram.utils.MIN_CHANNEL_ID = -1009999999999
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s"
+)
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
@@ -48,11 +59,11 @@ CHANNEL_URL = "https://t.me/Botskingdoms"  # replace
 
 def get_all_plugins(path="plugins"):
     """
-    Recursively find all .py files in the plugins folder (excluding __init__.py and this loader)
+    Recursively find all .py files in the plugins folder (excluding __init__.py)
     and return a dict suitable for Client(plugins=...)
     """
     plugins_dict = {}
-    for root, dirs, files in os.walk(path):
+    for root, _, files in os.walk(path):
         for file in files:
             if file.endswith(".py") and not file.startswith("__"):
                 rel_path = os.path.relpath(os.path.join(root, file), path)
@@ -66,7 +77,7 @@ async def keep_alive():
     async with aiohttp.ClientSession() as session:
         while True:
             try:
-                await session.get(KEEP_ALIVE_URL)
+                await session.get(KEEP_ALIVE_URL, timeout=20)
                 logging.info("Sent keep-alive request.")
             except Exception as e:
                 logging.error(f"Keep-alive request failed: {e}")
@@ -79,20 +90,29 @@ class Bot(Client):
             name="Bot",
             api_hash=API_HASH,
             api_id=API_ID,
-            plugins={"root": "plugins", **get_all_plugins("plugins")},
+            bot_token=BOT_TOKEN,
             workers=TG_BOT_WORKERS,
-            bot_token=BOT_TOKEN
+            plugins={"root": "plugins", **get_all_plugins("plugins")},
+            # ✅ default parse mode
+            parse_mode=ParseMode.HTML,
         )
 
-        # ✅ Works in old/new pyromod
+        # ✅ CRITICAL FIX:
+        # Pyromod expects these keys to exist in client.listeners.
+        # Different pyromod/pyrogram builds may use enum keys OR string keys.
+        # We add BOTH → no KeyError ever.
         self.listeners.setdefault("message", [])
         self.listeners.setdefault("callback_query", [])
 
+        try:
+            from pyromod.listen import ListenerTypes
+            self.listeners.setdefault(ListenerTypes.MESSAGE, [])
+            self.listeners.setdefault(ListenerTypes.CALLBACK_QUERY, [])
+        except Exception:
+            pass
+
     async def start(self):
         await super().start()
-
-        # ✅ default parse mode to HTML (blockquote + bold + links)
-        self.set_parse_mode(ParseMode.HTML)
 
         usr_bot_me = await self.get_me()
         self.uptime = datetime.now()
@@ -126,13 +146,15 @@ class Bot(Client):
             )
             sys.exit()
 
-        # ✅ Bot Restart Log (EXACT SAME STYLE: image + blockquote + inline buttons)
+        # ✅ Restart Log (blockquote + buttons)
         restart_caption = (
-            f"""<blockquote>
-🔥 sʏsᴛᴇᴍs ᴏɴʟɪɴᴇ. ʀᴇᴀᴅʏᴛᴏ ʀᴜᴍʙʟᴇ. 🔥
-ᴅᴄ ᴍᴏᴅᴇ: 𝟼𝟽
-sʟᴇᴇᴘ ᴍᴏᴅᴇ ᴅᴇᴀᴄᴛɪᴠᴀᴛᴇᴅ. ɴᴇᴜʀᴀʟ ᴄᴏʀᴇs ᴀᴛ 𝟷𝟶𝟶%. ғᴇᴇᴅ ᴍᴇ ᴛᴀsᴋs, ᴀɴᴅ ᴡᴀᴛᴄʜ ᴍᴀɢɪᴄ ʜᴀᴘᴘᴇɴ. ʟᴇᴛ’s. ɢᴇᴛ. ᴅᴀɴɢᴇʀᴏᴜs.
-</blockquote>"""
+            "<blockquote>\n"
+            "🔥 sʏsᴛᴇᴍs ᴏɴʟɪɴᴇ. ʀᴇᴀᴅʏᴛᴏ ʀᴜᴍʙʟᴇ. 🔥\n"
+            "ᴅᴄ ᴍᴏᴅᴇ: 𝟼𝟽\n"
+            "sʟᴇᴇᴘ ᴍᴏᴅᴇ ᴅᴇᴀᴄᴛɪᴠᴀᴛᴇᴅ. ɴᴇᴜʀᴀʟ ᴄᴏʀᴇs ᴀᴛ 𝟷𝟶𝟶%. "
+            "ғᴇᴇᴅ ᴍᴇ ᴛᴀsᴋs, ᴀɴᴅ ᴡᴀᴛᴄʜ ᴍᴀɢɪᴄ ʜᴀᴘᴘᴇɴ. "
+            "ʟᴇᴛ’s. ɢᴇᴛ. ᴅᴀɴɢᴇʀᴏᴜs.\n"
+            "</blockquote>"
         )
 
         restart_buttons = InlineKeyboardMarkup(
@@ -159,7 +181,6 @@ sʟᴇᴇᴘ ᴍᴏᴅᴇ ᴅᴇᴀᴄᴛɪᴠᴀᴛᴇᴅ. ɴᴇᴜʀᴀʟ ᴄ�
                 reply_markup=restart_buttons
             )
         except Exception as e:
-            # fallback text-only if photo link/file_id fails
             await self.send_message(
                 LOG_CHANNEL,
                 restart_caption + f"<br><br><i>(Banner failed: <code>{e}</code>)</i>",
@@ -168,32 +189,32 @@ sʟᴇᴇᴘ ᴍᴏᴅᴇ ᴅᴇᴀᴄᴛɪᴠᴀᴛᴇᴅ. ɴᴇᴜʀᴀʟ ᴄ�
                 reply_markup=restart_buttons
             )
 
-        # Web response
+        # Web server
         app = web.AppRunner(await web_server())
         await app.setup()
         bind_address = "0.0.0.0"
         await web.TCPSite(app, bind_address, PORT).start()
 
-        # ✅ Start keep-alive loop in background
+        # Keep-alive
         if KEEP_ALIVE_URL:
             asyncio.create_task(keep_alive())
 
     async def stop(self, *args):
         try:
-            await self.send_message(LOG_CHANNEL, "вσт нαѕ ѕтαятє∂", disable_web_page_preview=True)
+            await self.send_message(LOG_CHANNEL, "Bot is stopping...", disable_web_page_preview=True)
         except Exception:
             pass
         await super().stop()
 
 
-# 🔹 Log New Users (HTML-safe because bot parse_mode is HTML)
+# 🔹 Log New Users
 @Bot.on_message(filters.command("start") & filters.private)
 async def log_new_user(client: Bot, message: Message):
     user = message.from_user
 
     now = datetime.now(IST)
     date = now.strftime("%d/%m/%y")
-    time = now.strftime("%I:%M:%S %p")  # ✅ fixed format
+    time_ = now.strftime("%I:%M:%S %p")
 
     log_text = (
         f"<blockquote>"
@@ -202,14 +223,9 @@ async def log_new_user(client: Bot, message: Message):
         f"<b>User:</b> {user.mention}<br>"
         f"<b>User ID:</b> <code>{user.id}</code><br>"
         f"<b>Date:</b> {date}<br>"
-        f"<b>Time:</b> {time}"
+        f"<b>Time:</b> {time_}"
         f"</blockquote>"
     )
 
     await client.send_message(LOG_CHANNEL, log_text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
     await message.reply_text("👋 Hello! You started the bot ✅")
-
-
-# MyselfNeon
-# Don't Remove Credit 🥺
-# Telegram Channel @NeonFiles

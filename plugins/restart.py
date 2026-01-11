@@ -15,7 +15,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 import asyncio
 import os
 from config import ADMINS
-ADMINS = Config.ADMINS
+
 
 @Client.on_message(filters.command("restart") & filters.private)
 async def restart_bot(client, message):

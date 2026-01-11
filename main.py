@@ -1,22 +1,6 @@
-from pyromod import listen  # MUST be before importing Bot
+from pyromod import listen  # keep this line (patches pyrogram)
 
-try:
-    from Bot import Bot
-except ModuleNotFoundError:
-    try:
-        from bot import Bot
-    except ModuleNotFoundError:
-        try:
-            from plugins.Bot import Bot
-        except ModuleNotFoundError:
-            from plugins.bot import Bot
-
-
-    # ✅ Works in old/new pyromod (no ListenerTypes import)
-    app.listeners.setdefault("message", [])
-    app.listeners.setdefault("callback_query", [])
-
-    from bot import Bot
+from bot import Bot
 
 if __name__ == "__main__":
     app = Bot()

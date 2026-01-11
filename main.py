@@ -11,11 +11,11 @@ except ModuleNotFoundError:
         except ModuleNotFoundError:
             from plugins.bot import Bot
 
-if __name__ == "__main__":
-    app = Bot()
 
     # ✅ Works in old/new pyromod (no ListenerTypes import)
     app.listeners.setdefault("message", [])
     app.listeners.setdefault("callback_query", [])
 
     app.run()
+if __name__ == "__main__":
+    Bot.run()

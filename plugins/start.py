@@ -91,97 +91,96 @@ if not string or not isinstance(string, str):
     return await send_start_ui(client, message)
 
 argument = string.split("-")
-    # =========================
-    # rget- handler (your custom)
-    # =========================
-    if string.startswith("rget-"):
-        if len(argument) == 3:
-            try:
-                start = int(int(argument[1]) / abs(client.db_channel.id))
-                end = int(int(argument[2]) / abs(client.db_channel.id))
-            except:
-                return
-            if start <= end:
-                ids = range(start, end + 1)
-            else:
-                ids = []
-                i = start
-                while True:
-                    ids.append(i)
-                    i -= 1
-                    if i < end:
-                        break
-        elif len(argument) == 2:
-            try:
-                ids = [int(int(argument[1]) / abs(client.db_channel.id))]
-            except:
-                return
-        else:
-            return await send_start_ui(client, message)
 
-        temp_msg = await message.reply("<b><i>Pʟᴇᴀsᴇ Wᴀɪᴛ...⚡</i></b>")
+# -------------------------
+# rget- handler
+# -------------------------
+if string.startswith("rget-"):
+    if len(argument) == 3:
         try:
-            messages = await get_messages(client, ids)
+            start = int(int(argument[1]) / abs(client.db_channel.id))
+            end = int(int(argument[2]) / abs(client.db_channel.id))
         except:
-            await message.reply_text("<b><i>Sᴏᴍᴇᴛʜɪɴɢ Wᴇɴᴛ Wʀᴏɴɢ...❌</i></b>")
             return
-        await temp_msg.delete()
 
-        botskingdoms_msgs = []
+        if start <= end:
+            ids = range(start, end + 1)
+        else:
+            ids = []
+            i = start
+            while True:
+                ids.append(i)
+                i -= 1
+                if i < end:
+                    break
 
-        for msg in messages:
-            if bool(CUSTOM_CAPTION) & bool(msg.document):
-                caption = CUSTOM_CAPTION.format(
-                    previouscaption="" if not msg.caption else msg.caption.html,
-                    filename=msg.document.file_name
-                )
-            else:
-                caption = "" if not msg.caption else msg.caption.html
+    elif len(argument) == 2:
+        try:
+            ids = [int(int(argument[1]) / abs(client.db_channel.id))]
+        except:
+            return
+    else:
+        return await send_start_ui(client, message)
 
-            if DISABLE_CHANNEL_BUTTON:
-                reply_markup = msg.reply_markup
-            else:
-                reply_markup = None
+    temp_msg = await message.reply("<b><i>Pʟᴇᴀsᴇ Wᴀɪᴛ...⚡</i></b>")
+    try:
+        messages = await get_messages(client, ids)
+    except:
+        await message.reply_text("<b><i>Sᴏᴍᴇᴛʜɪɴɢ Wᴇɴᴛ Wʀᴏɴɢ...❌</i></b>")
+        return
+    await temp_msg.delete()
 
-            try:
-                botskingdoms_msg = await msg.copy(
-                    chat_id=message.from_user.id,
-                    caption=caption,
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=reply_markup,
-                    protect_content=True
-                )
-                botskingdoms_msgs.append(botskingdoms_msg)
-            except FloodWait as e:
-                await asyncio.sleep(e.x)
-                botskingdoms_msg = await msg.copy(
-                    chat_id=message.from_user.id,
-                    caption=caption,
-                    parse_mode=ParseMode.HTML,
-                    reply_markup=reply_markup,
-                    protect_content=True
-                )
-                botskingdoms_msgs.append(botskingdoms_msg)
-            except:
-                pass
+    botskingdoms_msgs = []
+    for msg in messages:
+        if bool(CUSTOM_CAPTION) & bool(msg.document):
+            caption = CUSTOM_CAPTION.format(
+                previouscaption="" if not msg.caption else msg.caption.html,
+                filename=msg.document.file_name
+            )
+        else:
+            caption = "" if not msg.caption else msg.caption.html
+
+        reply_markup = msg.reply_markup if DISABLE_CHANNEL_BUTTON else None
 
         try:
-            await client.send_sticker(
+            botskingdoms_msg = await msg.copy(
                 chat_id=message.from_user.id,
-                sticker="CAACAgUAAxkBAAI6eWjpNJUmsaD6O-PzuDOtGxZDg95lAAJFHAACwutJV4qF4DMw0uAwHgQ"
+                caption=caption,
+                parse_mode=ParseMode.HTML,
+                reply_markup=reply_markup,
+                protect_content=True
             )
+            botskingdoms_msgs.append(botskingdoms_msg)
+        except FloodWait as e:
+            await asyncio.sleep(e.x)
+            botskingdoms_msg = await msg.copy(
+                chat_id=message.from_user.id,
+                caption=caption,
+                parse_mode=ParseMode.HTML,
+                reply_markup=reply_markup,
+                protect_content=True
+            )
+            botskingdoms_msgs.append(botskingdoms_msg)
         except:
             pass
 
-        k = await client.send_message(
+    try:
+        await client.send_sticker(
             chat_id=message.from_user.id,
-            text=f"<b>❗️ <u><i>Iᴍᴘᴏʀᴛᴀɴᴛ</i></u> ❗️</b>\n\n"
-                 f"<b><i>💢 Fɪʟᴇs Wɪʟʟ ʙᴇ Dᴇʟᴇᴛᴇᴅ ɪɴ {file_auto_delete} (Dᴜᴇ ᴛᴏ Cᴏᴘʏʀɪɢʜᴛ Issᴜᴇs).\n\n"
-                 f"💢 Sᴀᴠᴇ Tʜᴇsᴇ Fɪʟᴇs ᴛᴏ ʏᴏᴜʀ Sᴀᴠᴇᴅ Mᴇssᴀɢᴇs Aɴᴅ Dᴏᴡɴʟᴏᴀᴅ Tʜᴇʀᴇ 📂</i></b>"
+            sticker="CAACAgUAAxkBAAI6eWjpNJUmsaD6O-PzuDOtGxZDg95lAAJFHAACwutJV4qF4DMw0uAwHgQ"
         )
+    except:
+        pass
 
-        asyncio.create_task(delete_files(botskingdoms_msgs, client, k))
-        return
+    k = await client.send_message(
+        chat_id=message.from_user.id,
+        text=f"<b>❗️ <u><i>Iᴍᴘᴏʀᴛᴀɴᴛ</i></u> ❗️</b>\n\n"
+             f"<b><i>💢 Fɪʟᴇs Wɪʟʟ ʙᴇ Dᴇʟᴇᴛᴇᴅ ɪɴ {file_auto_delete} (Dᴜᴇ ᴛᴏ Cᴏᴘʏʀɪɢʜᴛ Issᴜᴇs).\n\n"
+             f"💢 Sᴀᴠᴇ Tʜᴇsᴇ Fɪʟᴇs ᴛᴏ ʏᴏᴜʀ Sᴀᴠᴇᴅ Mᴇssᴀɢᴇs Aɴᴅ Dᴏᴡɴʟᴏᴀᴅ Tʜᴇʀᴇ 📂</i></b>"
+    )
+
+    asyncio.create_task(delete_files(botskingdoms_msgs, client, k))
+    return
 
     # =========================
     # Normal handler (your existing logic)

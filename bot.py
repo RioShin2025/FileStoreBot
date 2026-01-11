@@ -228,7 +228,7 @@ async def log_new_user(client: Bot, message: Message):
     )
 
     await client.send_message(LOG_CHANNEL, log_text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
-    await message.reply_text("👋 Hello! You started the bot ✅")"
+    await message.reply_text("👋 Hello! You started the bot ✅")
         )
 
         restart_buttons = InlineKeyboardMarkup(

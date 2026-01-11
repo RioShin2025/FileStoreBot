@@ -79,6 +79,13 @@ async def restart_bot(client: Client, message):
     # Step 2: Delay for drama 😏
     await asyncio.sleep(2)
 
-    # Step 3: Heroku-safe restart
-    # Don't use os.execvp on Heroku. Just terminate; dyno manager restarts it.
-    os.kill(os.getpid(), signal.SIGTERM)
+# Step 3: Clean shutdown first
+try:
+    await client.stop()
+except:
+    pass
+
+await asyncio.sleep(1)
+
+# Then terminate dyno (Heroku will restart)
+os.kill(os.getpid(), signal.SIGTERM)

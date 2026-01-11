@@ -1,4 +1,4 @@
-from pyromod import listen  # ✅ MUST be before importing Bot
+from pyromod import listen  # MUST be before importing Bot
 
 try:
     from Bot import Bot
@@ -11,13 +11,11 @@ except ModuleNotFoundError:
         except ModuleNotFoundError:
             from plugins.bot import Bot
 
-from pyromod.listen import ListenerTypes
-
 if __name__ == "__main__":
     app = Bot()
 
-    # ✅ Prevent KeyError even if something resets listeners
-    app.listeners.setdefault(ListenerTypes.MESSAGE, [])
-    app.listeners.setdefault(ListenerTypes.CALLBACK_QUERY, [])
+    # ✅ Works in old/new pyromod (no ListenerTypes import)
+    app.listeners.setdefault("message", [])
+    app.listeners.setdefault("callback_query", [])
 
     app.run()

@@ -79,13 +79,13 @@ async def restart_bot(client: Client, message):
     # Step 2: Delay for drama 😏
     await asyncio.sleep(2)
 
-# Step 3: Clean shutdown first
-try:
-    await client.stop()
-except:
-    pass
+    # Step 3: Clean shutdown first
+    try:
+        await client.stop()
+    except:
+        pass
 
-await asyncio.sleep(1)
+    await asyncio.sleep(1)
 
-# Then terminate dyno (Heroku will restart)
-os.kill(os.getpid(), signal.SIGTERM)
+    # Step 4: Then terminate dyno (Heroku will restart)
+    os.kill(os.getpid(), signal.SIGTERM)

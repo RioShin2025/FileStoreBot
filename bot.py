@@ -1,13 +1,10 @@
 # ---------------------------------------------------
-# File Name: Bot.py
+# File Name: bot.py
 # Author: NeonAnurag
 # GitHub: https://github.com/MyselfNeon/
 # Telegram: https://t.me/MyelfNeon
 # YouTube: https://youtube.com/@MyselfNeon
-# Created: 2025-10-21
-# Last Modified: 2025-10-22
-# Version: Latest
-# License: MIT License
+# License: MIT
 # ---------------------------------------------------
 
 import os
@@ -20,14 +17,13 @@ from datetime import datetime, timedelta, timezone
 
 from plugins import web_server
 
-# ✅ IMPORTANT: this must be imported BEFORE pyrogram Client import
+# ✅ IMPORTANT: must be imported BEFORE pyrogram Client import
 from pyromod import listen  # noqa: F401
 
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
 from pyrogram.types import (
     Message,
-    BotCommand,
     InlineKeyboardMarkup,
     InlineKeyboardButton
 )
@@ -38,8 +34,6 @@ from config import (
 )
 
 import pyrogram.utils
-import pyrogram
-
 pyrogram.utils.MIN_CHANNEL_ID = -1009999999999
 
 logging.basicConfig(
@@ -49,31 +43,33 @@ logging.basicConfig(
 
 IST = timezone(timedelta(hours=5, minutes=30))
 
-# ✅ Add your image link here (must be direct .jpg/.png/.webp) OR telegram file_id
+# ✅ Restart banner (direct image link OR Telegram file_id)
 RESTART_BANNER = "https://i.rj1.dev/nVeqm.jpg"
 
-# ✅ Button Links (edit these)
-START_NOW_DEEPLINK_PARAM = "start"  # will open t.me/<bot>?start=start
-CHANNEL_URL = "https://t.me/Botskingdoms"  # replace
+# ✅ Button Links
+START_NOW_DEEPLINK_PARAM = "start"   # t.me/<bot>?start=start
+CHANNEL_URL = "https://t.me/Botskingdoms"
 
 
 def get_all_plugins(path="plugins"):
     """
-    Recursively find all .py files in the plugins folder (excluding __init__.py)
-    and return a dict suitable for Client(plugins=...)
+    Recursively find all .py files in plugins folder (excluding __init__.py)
+    and return dict for Client(plugins=...)
     """
     plugins_dict = {}
     for root, _, files in os.walk(path):
         for file in files:
             if file.endswith(".py") and not file.startswith("__"):
                 rel_path = os.path.relpath(os.path.join(root, file), path)
-                module_path = rel_path.replace(os.sep, ".")[:-3]  # remove .py
+                module_path = rel_path.replace(os.sep, ".")[:-3]
                 plugins_dict[module_path] = {}
     return plugins_dict
 
 
 async def keep_alive():
-    """Send a request every 100 seconds to keep the bot alive (if required)."""
+    """Send a request every 100 seconds to keep the bot alive."""
+    if not KEEP_ALIVE_URL:
+        return
     async with aiohttp.ClientSession() as session:
         while True:
             try:
@@ -93,17 +89,12 @@ class Bot(Client):
             bot_token=BOT_TOKEN,
             workers=TG_BOT_WORKERS,
             plugins={"root": "plugins", **get_all_plugins("plugins")},
-            # ✅ default parse mode
             parse_mode=ParseMode.HTML,
         )
 
-        # ✅ CRITICAL FIX:
-        # Pyromod expects these keys to exist in client.listeners.
-        # Different pyromod/pyrogram builds may use enum keys OR string keys.
-        # We add BOTH → no KeyError ever.
+        # ✅ Pyromod listener fix (supports both string keys + enum keys)
         self.listeners.setdefault("message", [])
         self.listeners.setdefault("callback_query", [])
-
         try:
             from pyromod.listen import ListenerTypes
             self.listeners.setdefault(ListenerTypes.MESSAGE, [])
@@ -114,17 +105,19 @@ class Bot(Client):
     async def start(self):
         await super().start()
 
-        usr_bot_me = await self.get_me()
+        me = await self.get_me()
+        self.username = me.username
         self.uptime = datetime.now()
-        self.username = usr_bot_me.username  # store username
 
-        # Force Sub Check
+        # ✅ Force Sub invite link (optional)
         if FORCE_SUB_CHANNEL:
             try:
-                link = (await self.get_chat(FORCE_SUB_CHANNEL)).invite_link
+                chat = await self.get_chat(FORCE_SUB_CHANNEL)
+                link = chat.invite_link
                 if not link:
                     await self.export_chat_invite_link(FORCE_SUB_CHANNEL)
-                    link = (await self.get_chat(FORCE_SUB_CHANNEL)).invite_link
+                    chat = await self.get_chat(FORCE_SUB_CHANNEL)
+                    link = chat.invite_link
                 self.invitelink = link
             except Exception as a:
                 await self.send_message(
@@ -132,29 +125,28 @@ class Bot(Client):
                     f"❌ Failed to get invite link for FORCE_SUB_CHANNEL<br><br>Error: <code>{a}</code>",
                     disable_web_page_preview=True
                 )
-                sys.exit()
+                sys.exit(1)
 
-        # DB Channel Check
+        # ✅ DB channel check
         try:
-            db_channel = await self.get_chat(CHANNEL_ID)
-            self.db_channel = db_channel
+            self.db_channel = await self.get_chat(CHANNEL_ID)
         except Exception as e:
             await self.send_message(
                 LOG_CHANNEL,
                 f"❌ Failed to connect DB channel.<br>Error: <code>{e}</code><br><br>Check CHANNEL_ID: <code>{CHANNEL_ID}</code>",
                 disable_web_page_preview=True
             )
-            sys.exit()
+            sys.exit(1)
 
-        # ✅ Restart Log (blockquote + buttons)
+        # ✅ Restart caption (BLOCKQUOTE FIXED)
         restart_caption = (
             "<blockquote>\n"
             "🔥 sʏsᴛᴇᴍs ᴏɴʟɪɴᴇ. ʀᴇᴀᴅʏᴛᴏ ʀᴜᴍʙʟᴇ. 🔥\n"
             "ᴅᴄ ᴍᴏᴅᴇ: 𝟼𝟽\n"
-            "sʟᴇᴇᴘ ᴍᴏᴅᴇ ᴅᴇᴀᴄᴛɪᴠᴀᴛᴇᴅ. ɴᴇᴜʀᴀʟ ᴄᴏʀᴇs ᴀᴛ 𝟷𝟶𝟶%. "
-            "ғᴇᴇᴅ ᴍᴇ ᴛᴀsᴋs, ᴀɴᴅ ᴡᴀᴛᴄʜ ᴍᴀɢɪᴄ ʜᴀᴘᴘᴇɴ. "
+            "sʟᴇᴇᴘ ᴍᴏᴅᴇ ᴅᴇᴀᴄᴛɪᴠᴀᴛᴇᴅ. ɴᴇᴜʀᴀʟ ᴄᴏʀᴇs ᴀᴛ 𝟷𝟶𝟶%.\n"
+            "ғᴇᴇᴅ ᴍᴇ ᴛᴀsᴋs, ᴀɴᴅ ᴡᴀᴛᴄʜ ᴍᴀɢɪᴄ ʜᴀᴘᴘᴇɴ.\n"
             "ʟᴇᴛ’s. ɢᴇᴛ. ᴅᴀɴɢᴇʀᴏᴜs.\n"
-            "</pre>"
+            "</blockquote>"
         )
 
         restart_buttons = InlineKeyboardMarkup(
@@ -164,10 +156,7 @@ class Bot(Client):
                         "Start Now",
                         url=f"https://t.me/{self.username}?start={START_NOW_DEEPLINK_PARAM}"
                     ),
-                    InlineKeyboardButton(
-                        "Channel",
-                        url=CHANNEL_URL
-                    ),
+                    InlineKeyboardButton("Channel", url=CHANNEL_URL),
                 ]
             ]
         )
@@ -177,25 +166,22 @@ class Bot(Client):
                 chat_id=LOG_CHANNEL,
                 photo=RESTART_BANNER,
                 caption=restart_caption,
-                parse_mode=ParseMode.HTML,
                 reply_markup=restart_buttons
             )
         except Exception as e:
             await self.send_message(
                 LOG_CHANNEL,
                 restart_caption + f"<br><br><i>(Banner failed: <code>{e}</code>)</i>",
-                parse_mode=ParseMode.HTML,
                 disable_web_page_preview=True,
                 reply_markup=restart_buttons
             )
 
-        # Web server
-        app = web.AppRunner(await web_server())
-        await app.setup()
-        bind_address = "0.0.0.0"
-        await web.TCPSite(app, bind_address, PORT).start()
+        # ✅ Web server
+        runner = web.AppRunner(await web_server())
+        await runner.setup()
+        await web.TCPSite(runner, "0.0.0.0", PORT).start()
 
-        # Keep-alive
+        # ✅ keep alive task
         if KEEP_ALIVE_URL:
             asyncio.create_task(keep_alive())
 
@@ -207,86 +193,12 @@ class Bot(Client):
         await super().stop()
 
 
-# 🔹 Log New Users
+# ✅ Log new users (ONLY THIS FUNCTION, NO DUPLICATES)
 @Bot.on_message(filters.command("start") & filters.private)
 async def log_new_user(client: Bot, message: Message):
     user = message.from_user
-
     now = datetime.now(IST)
-    date = now.strftime("%d/%m/%y")
-    time_ = now.strftime("%I:%M:%S %p")
 
-    log_text = (
-        f"<pre>"
-        f"<b>⌬ 🆕👤 #NewUser</b><br>"
-        f"<b>Bot:</b> <b>@{client.username}</b><br>"
-        f"<b>User:</b> {user.mention}<br>"
-        f"<b>User ID:</b> <code>{user.id}</code><br>"
-        f"<b>Date:</b> {date}<br>"
-        f"<b>Time:</b> {time_}"
-        f"</pre>"
-    )
-
-    await client.send_message(LOG_CHANNEL, log_text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
-    await message.reply_text("👋 Hello! You started the bot ✅")
-        
-
-        restart_buttons = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton(
-                        "Start Now",
-                        url=f"https://t.me/{self.username}?start={START_NOW_DEEPLINK_PARAM}"
-                    ),
-                    InlineKeyboardButton(
-                        "Channel",
-                        url=CHANNEL_URL
-                    ),
-                ]
-            ]
-        )
-
-        try:
-            await self.send_photo(
-                chat_id=LOG_CHANNEL,
-                photo=RESTART_BANNER,
-                caption=restart_caption,
-                parse_mode=ParseMode.HTML,
-                reply_markup=restart_buttons
-            )
-        except Exception as e:
-            await self.send_message(
-                LOG_CHANNEL,
-                restart_caption + f"<br><br><i>(Banner failed: <code>{e}</code>)</i>",
-                parse_mode=ParseMode.HTML,
-                disable_web_page_preview=True,
-                reply_markup=restart_buttons
-            )
-
-        # Web server
-        app = web.AppRunner(await web_server())
-        await app.setup()
-        bind_address = "0.0.0.0"
-        await web.TCPSite(app, bind_address, PORT).start()
-
-        # Keep-alive
-        if KEEP_ALIVE_URL:
-            asyncio.create_task(keep_alive())
-
-    async def stop(self, *args):
-        try:
-            await self.send_message(LOG_CHANNEL, "Bot is stopping...", disable_web_page_preview=True)
-        except Exception:
-            pass
-        await super().stop()
-
-
-# 🔹 Log New Users
-@Bot.on_message(filters.command("start") & filters.private)
-async def log_new_user(client: Bot, message: Message):
-    user = message.from_user
-
-    now = datetime.now(IST)
     date = now.strftime("%d/%m/%y")
     time_ = now.strftime("%I:%M:%S %p")
 
@@ -301,5 +213,5 @@ async def log_new_user(client: Bot, message: Message):
         f"</blockquote>"
     )
 
-    await client.send_message(LOG_CHANNEL, log_text, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
+    await client.send_message(LOG_CHANNEL, log_text, disable_web_page_preview=True)
     await message.reply_text("👋 Hello! You started the bot ✅")

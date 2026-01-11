@@ -18,8 +18,8 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from config import ADMINS
 
 
-RESTART_PIC = "https://i.ibb.co/mHTMbmM/630b4ff5ccf9.jpg"
-RESTART_TEXT = "<b>💔 Rᴇsᴛᴀʀᴛɪɴɢ... Dᴏɴ'ᴛ ʏᴏᴜ ᴅᴀʀᴇ ᴍɪss ᴍᴇ ʙᴀʙʏ!</b>"
+RESTART_PIC = "https://i.rj1.dev/TEBEb.jpg"
+RESTART_TEXT = "<b>💔 Rᴇsᴛᴀʀᴛɪɴɢ... Dᴏɴ'ᴛ ʏᴏᴜ ᴅᴀʀᴇ ᴛᴏ ᴍᴇss ᴡɪᴛʜ ᴍᴇ ʙᴀʙʏ!</b>"
 
 
 def restart_buttons():

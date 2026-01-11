@@ -306,22 +306,7 @@ async def not_joined(client: Client, message: Message):
     )
 
 
-@Bot.on_message(filters.command("users") & filters.private)
-async def get_users(client: Bot, message: Message):
-    msg = await message.reply_text("⏳ <b><i>Preparing User Data...</i></b>", quote=True)
 
-    users = await full_userbase()
-    total = len(users)
-
-    await msg.edit(
-        f"""
-🌀 <b><i>User Analytics Update</i></b> 🌀
-
-<b><i>👥 Total Registered Users:</b> {total}</i>
-<b><i>🛰 System Status:</b> Active</i> ✅
-<b><i>🧠 Data Source:</b> Real Time DB data</i>
-"""
-    )
 
 
 @Bot.on_message(filters.private & filters.command("broadcast") & filters.user(ADMINS))

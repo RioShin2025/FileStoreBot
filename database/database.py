@@ -40,7 +40,16 @@ async def del_user(user_id: int):
     user_data.delete_one({'_id': user_id})
     return
 
+admins = set()
 
+def add_admin(user_id: int):
+    admins.add(int(user_id))
+
+def remove_admin(user_id: int):
+    admins.discard(int(user_id))
+
+def get_all_admins():
+    return list(admins)
 # MyselfNeon
 # Don't Remove Credit 🥺
 # Telegram Channel @NeonFiles

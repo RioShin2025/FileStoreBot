@@ -16,6 +16,8 @@ except ModuleNotFoundError:
     app.listeners.setdefault("message", [])
     app.listeners.setdefault("callback_query", [])
 
-    app.run()
+    from bot import Bot
+
 if __name__ == "__main__":
-    Bot.run()
+    app = Bot()
+    app.run()

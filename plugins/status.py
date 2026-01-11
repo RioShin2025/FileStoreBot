@@ -9,6 +9,8 @@ import time
 import platform
 import sys
 
+print("✅ status.py loaded")
+
 # -------------------------
 # Bot start time (session uptime)
 # -------------------------
